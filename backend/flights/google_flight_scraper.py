@@ -4,6 +4,7 @@ from config.models import model
 from flights.util import flight_scrape_task
 from dotenv import load_dotenv
 import os
+import platform
 
 load_dotenv()
 
@@ -140,9 +141,17 @@ class FlightSearchScraper:
 
 
 async def scrape_flights(url, preferences):
+    # Determine the correct Chrome path based on the operating system
+    if platform.system() == "Windows":
+        chrome_path = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    elif platform.system() == "Darwin":  # macOS
+        chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    else:  # Linux
+        chrome_path = "/usr/bin/google-chrome"
+    
     browser = Browser(
         config=BrowserConfig(
-            chrome_instance_path="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+            chrome_instance_path=chrome_path
         )
     )
     initial_actions = [
