@@ -19,7 +19,7 @@ class FlightSearchScraper:
         else:
             # Local browser configuration
             self.browser = await self.playwright.chromium.launch(
-                headless=True,  # Set to True for headless mode
+                headless=False,
             )
 
         self.context = await self.browser.new_context()
@@ -27,7 +27,7 @@ class FlightSearchScraper:
 
     async def find_origin_input(self):
         element = await self.page.wait_for_selector(
-            'input[aria-label="Where from?"]', timeout=5000
+            'input[aria-label="Where from?"]', timeout=3000
         )
         if element:
             return element
@@ -37,11 +37,18 @@ class FlightSearchScraper:
     async def fill_and_select_airport(self, input_selector, airport_name):
         try:
             input_element = await self.page.wait_for_selector(input_selector)
-            await input_element.press("Control+a")
-            await input_element.press("Delete")
+            
+            # Clear the input field using multiple methods for reliability
+            await input_element.fill("")  # First try using fill with empty string
+            await input_element.press("Control+a")  # Select all text
+            await input_element.press("Delete")  # Delete selected text
+            await input_element.evaluate("el => el.value = ''")  # Clear value property
+            
+            # Type the new text with a small delay between characters
             await input_element.type(airport_name, delay=50)
+            
             await self.page.wait_for_selector(
-                f'li[role="option"][aria-label*="{airport_name}"]', timeout=3000
+                f'li[role="option"][aria-label*="{airport_name}"]', timeout=5000
             )
             await self.page.wait_for_timeout(500)
 
